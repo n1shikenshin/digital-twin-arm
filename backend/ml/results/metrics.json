@@ -1,0 +1,213 @@
+{
+  "test": {
+    "random_forest": {
+      "confusion_matrix": [
+        [
+          3328,
+          17,
+          0
+        ],
+        [
+          37,
+          1121,
+          0
+        ],
+        [
+          0,
+          0,
+          867
+        ]
+      ],
+      "per_class": {
+        "normal": {
+          "precision": 0.989,
+          "recall": 0.995,
+          "f1-score": 0.992
+        },
+        "overtemp": {
+          "precision": 0.985,
+          "recall": 0.968,
+          "f1-score": 0.976
+        },
+        "overcurrent": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0
+        }
+      },
+      "macro_f1": 0.989,
+      "detection": {
+        "overtemp": {
+          "events": 16,
+          "missed": 0,
+          "mean_delay_s": 2.3
+        },
+        "overcurrent": {
+          "events": 13,
+          "missed": 0,
+          "mean_delay_s": 0.0
+        }
+      }
+    },
+    "threshold_baseline": {
+      "confusion_matrix": [
+        [
+          3341,
+          4,
+          0
+        ],
+        [
+          1027,
+          131,
+          0
+        ],
+        [
+          78,
+          0,
+          789
+        ]
+      ],
+      "per_class": {
+        "normal": {
+          "precision": 0.751,
+          "recall": 0.999,
+          "f1-score": 0.858
+        },
+        "overtemp": {
+          "precision": 0.97,
+          "recall": 0.113,
+          "f1-score": 0.203
+        },
+        "overcurrent": {
+          "precision": 1.0,
+          "recall": 0.91,
+          "f1-score": 0.953
+        }
+      },
+      "macro_f1": 0.671,
+      "detection": {
+        "overtemp": {
+          "events": 16,
+          "missed": 8,
+          "mean_delay_s": 60.0
+        },
+        "overcurrent": {
+          "events": 13,
+          "missed": 0,
+          "mean_delay_s": 0.5
+        }
+      }
+    }
+  },
+  "heldout": {
+    "random_forest": {
+      "confusion_matrix": [
+        [
+          3289,
+          91,
+          946
+        ],
+        [
+          18,
+          1306,
+          263
+        ],
+        [
+          0,
+          0,
+          1247
+        ]
+      ],
+      "per_class": {
+        "normal": {
+          "precision": 0.995,
+          "recall": 0.76,
+          "f1-score": 0.862
+        },
+        "overtemp": {
+          "precision": 0.935,
+          "recall": 0.823,
+          "f1-score": 0.875
+        },
+        "overcurrent": {
+          "precision": 0.508,
+          "recall": 1.0,
+          "f1-score": 0.674
+        }
+      },
+      "macro_f1": 0.804,
+      "detection": {
+        "overtemp": {
+          "events": 23,
+          "missed": 0,
+          "mean_delay_s": 2.3
+        },
+        "overcurrent": {
+          "events": 19,
+          "missed": 0,
+          "mean_delay_s": 0.0
+        }
+      }
+    },
+    "threshold_baseline": {
+      "confusion_matrix": [
+        [
+          4299,
+          15,
+          12
+        ],
+        [
+          1175,
+          408,
+          4
+        ],
+        [
+          106,
+          0,
+          1141
+        ]
+      ],
+      "per_class": {
+        "normal": {
+          "precision": 0.77,
+          "recall": 0.994,
+          "f1-score": 0.868
+        },
+        "overtemp": {
+          "precision": 0.965,
+          "recall": 0.257,
+          "f1-score": 0.406
+        },
+        "overcurrent": {
+          "precision": 0.986,
+          "recall": 0.915,
+          "f1-score": 0.949
+        }
+      },
+      "macro_f1": 0.741,
+      "detection": {
+        "overtemp": {
+          "events": 23,
+          "missed": 2,
+          "mean_delay_s": 40.7
+        },
+        "overcurrent": {
+          "events": 19,
+          "missed": 0,
+          "mean_delay_s": 0.3
+        }
+      }
+    }
+  },
+  "feature_importance": {
+    "temp_rate_5s": 0.27,
+    "current_residual": 0.214,
+    "current": 0.204,
+    "temp": 0.116,
+    "current_mean": 0.111,
+    "temp_mean": 0.055,
+    "speed": 0.015,
+    "is_stopped": 0.008,
+    "current_std": 0.007
+  }
+}
