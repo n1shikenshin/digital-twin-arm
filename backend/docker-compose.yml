@@ -1,0 +1,30 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    restart: unless-stopped
+
+  processor:
+    build: ./services/processor
+    environment:
+      MQTT_HOST: mosquitto
+      DB_PATH: /data/arm.db
+    volumes:
+      - dbdata:/data
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+
+  simulator:
+    build: ./services/simulator
+    environment:
+      MQTT_HOST: mosquitto
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+
+volumes:
+  dbdata:
