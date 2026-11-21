@@ -1,0 +1,10 @@
+apiVersion: 1
+datasources:
+  - name: Arm SQLite
+    uid: arm-sqlite
+    type: frser-sqlite-datasource
+    access: proxy
+    isDefault: true
+    editable: false
+    jsonData:
+      path: /data/arm.db

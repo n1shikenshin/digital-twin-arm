@@ -1,0 +1,1104 @@
+{
+  "uid": "arm-twin",
+  "title": "Robot Arm Digital Twin",
+  "tags": [
+    "digital-twin",
+    "robot-arm"
+  ],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "5s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m"
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": []
+  },
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Motor temperature",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "arm-sqlite"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "arm-sqlite"
+          },
+          "refId": "A",
+          "queryText": "SELECT temp AS \"Motor temperature\" FROM readings WHERE asset_id='arm_01' ORDER BY id DESC LIMIT 1",
+          "rawQueryText": "SELECT temp AS \"Motor temperature\" FROM readings WHERE asset_id='arm_01' ORDER BY id DESC LIMIT 1",
+          "queryType": "table",
+          "timeColumns": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 60
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Motor current",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "arm-sqlite"
+      },
+      "gridPos": {
+        "x": 4,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "arm-sqlite"
+          },
+          "refId": "A",
+          "queryText": "SELECT current AS \"Motor current\" FROM readings WHERE asset_id='arm_01' ORDER BY id DESC LIMIT 1",
+          "rawQueryText": "SELECT current AS \"Motor current\" FROM readings WHERE asset_id='arm_01' ORDER BY id DESC LIMIT 1",
+          "queryType": "table",
+          "timeColumns": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "amp",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "AI status",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "arm-sqlite"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "arm-sqlite"
+          },
+          "refId": "A",
+          "queryText": "SELECT ai_label AS \"AI status\" FROM readings WHERE asset_id='arm_01' ORDER BY id DESC LIMIT 1",
+          "rawQueryText": "SELECT ai_label AS \"AI status\" FROM readings WHERE asset_id='arm_01' ORDER BY id DESC LIMIT 1",
+          "queryType": "table",
+          "timeColumns": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "normal": {
+                  "text": "normal",
+                  "color": "green",
+                  "index": 0
+                },
+                "overtemp": {
+                  "text": "overtemp",
+                  "color": "red",
+                  "index": 1
+                },
+                "overcurrent": {
+                  "text": "overcurrent",
+                  "color": "orange",
+                  "index": 2
+                },
+                "warming_up": {
+                  "text": "warming up",
+                  "color": "gray",
+                  "index": 3
+                },
+                "unavailable": {
+                  "text": "unavailable",
+                  "color": "gray",
+                  "index": 4
+                },
+                "ALARM": {
+                  "text": "ALARM",
+                  "color": "red",
+                  "index": 5
+                },
+                "ok": {
+                  "text": "ok",
+                  "color": "green",
+                  "index": 6
+                },
+                "auto": {
+                  "text": "auto",
+                  "color": "green",
+                  "index": 7
+                },
+                "idle": {
+                  "text": "idle",
+                  "color": "gray",
+                  "index": 8
+                },
+                "manual": {
+                  "text": "manual",
+                  "color": "blue",
+                  "index": 9
+                },
+                "fault_stop": {
+                  "text": "fault_stop",
+                  "color": "red",
+                  "index": 10
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Mode",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "arm-sqlite"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "arm-sqlite"
+          },
+          "refId": "A",
+          "queryText": "SELECT mode AS \"Mode\" FROM readings WHERE asset_id='arm_01' ORDER BY id DESC LIMIT 1",
+          "rawQueryText": "SELECT mode AS \"Mode\" FROM readings WHERE asset_id='arm_01' ORDER BY id DESC LIMIT 1",
+          "queryType": "table",
+          "timeColumns": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "normal": {
+                  "text": "normal",
+                  "color": "green",
+                  "index": 0
+                },
+                "overtemp": {
+                  "text": "overtemp",
+                  "color": "red",
+                  "index": 1
+                },
+                "overcurrent": {
+                  "text": "overcurrent",
+                  "color": "orange",
+                  "index": 2
+                },
+                "warming_up": {
+                  "text": "warming up",
+                  "color": "gray",
+                  "index": 3
+                },
+                "unavailable": {
+                  "text": "unavailable",
+                  "color": "gray",
+                  "index": 4
+                },
+                "ALARM": {
+                  "text": "ALARM",
+                  "color": "red",
+                  "index": 5
+                },
+                "ok": {
+                  "text": "ok",
+                  "color": "green",
+                  "index": 6
+                },
+                "auto": {
+                  "text": "auto",
+                  "color": "green",
+                  "index": 7
+                },
+                "idle": {
+                  "text": "idle",
+                  "color": "gray",
+                  "index": 8
+                },
+                "manual": {
+                  "text": "manual",
+                  "color": "blue",
+                  "index": 9
+                },
+                "fault_stop": {
+                  "text": "fault_stop",
+                  "color": "red",
+                  "index": 10
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Threshold alarm",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "arm-sqlite"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "arm-sqlite"
+          },
+          "refId": "A",
+          "queryText": "SELECT baseline_alarm AS \"Threshold alarm\" FROM readings WHERE asset_id='arm_01' ORDER BY id DESC LIMIT 1",
+          "rawQueryText": "SELECT baseline_alarm AS \"Threshold alarm\" FROM readings WHERE asset_id='arm_01' ORDER BY id DESC LIMIT 1",
+          "queryType": "table",
+          "timeColumns": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "ok",
+                  "color": "green",
+                  "index": 0
+                },
+                "1": {
+                  "text": "ALARM",
+                  "color": "red",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Rows stored (database)",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "arm-sqlite"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "arm-sqlite"
+          },
+          "refId": "A",
+          "queryText": "SELECT COUNT(*) AS \"Rows\" FROM readings WHERE asset_id='arm_01'",
+          "rawQueryText": "SELECT COUNT(*) AS \"Rows\" FROM readings WHERE asset_id='arm_01'",
+          "queryType": "table",
+          "timeColumns": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Motor temperature (dashed = threshold alarm level 85 C)",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "arm-sqlite"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "arm-sqlite"
+          },
+          "refId": "A",
+          "queryText": "SELECT CAST(strftime('%s', recv_ts) AS INTEGER) AS time, temp AS \"Motor temp\" FROM readings WHERE asset_id='arm_01' AND CAST(strftime('%s', recv_ts) AS INTEGER) BETWEEN $__from / 1000 AND $__to / 1000 ORDER BY time",
+          "rawQueryText": "SELECT CAST(strftime('%s', recv_ts) AS INTEGER) AS time, temp AS \"Motor temp\" FROM readings WHERE asset_id='arm_01' AND CAST(strftime('%s', recv_ts) AS INTEGER) BETWEEN $__from / 1000 AND $__to / 1000 ORDER BY time",
+          "queryType": "time series",
+          "timeColumns": [
+            "time"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "thresholdsStyle": {
+              "mode": "dashed"
+            },
+            "axisSoftMax": 100
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Motor current (dashed = threshold alarm level 5 A)",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "arm-sqlite"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "arm-sqlite"
+          },
+          "refId": "A",
+          "queryText": "SELECT CAST(strftime('%s', recv_ts) AS INTEGER) AS time, current AS \"Motor current\" FROM readings WHERE asset_id='arm_01' AND CAST(strftime('%s', recv_ts) AS INTEGER) BETWEEN $__from / 1000 AND $__to / 1000 ORDER BY time",
+          "rawQueryText": "SELECT CAST(strftime('%s', recv_ts) AS INTEGER) AS time, current AS \"Motor current\" FROM readings WHERE asset_id='arm_01' AND CAST(strftime('%s', recv_ts) AS INTEGER) BETWEEN $__from / 1000 AND $__to / 1000 ORDER BY time",
+          "queryType": "time series",
+          "timeColumns": [
+            "time"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "amp",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "thresholdsStyle": {
+              "mode": "dashed"
+            },
+            "axisSoftMax": 8
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "state-timeline",
+      "title": "AI status vs threshold alarm (timeline)",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "arm-sqlite"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 24,
+        "h": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "arm-sqlite"
+          },
+          "refId": "A",
+          "queryText": "SELECT CAST(strftime('%s', recv_ts) AS INTEGER) AS time, ai_label AS \"AI model\", CASE WHEN baseline_alarm=1 THEN 'ALARM' ELSE 'ok' END AS \"Threshold alarm\" FROM readings WHERE asset_id='arm_01' AND CAST(strftime('%s', recv_ts) AS INTEGER) BETWEEN $__from / 1000 AND $__to / 1000 ORDER BY time",
+          "rawQueryText": "SELECT CAST(strftime('%s', recv_ts) AS INTEGER) AS time, ai_label AS \"AI model\", CASE WHEN baseline_alarm=1 THEN 'ALARM' ELSE 'ok' END AS \"Threshold alarm\" FROM readings WHERE asset_id='arm_01' AND CAST(strftime('%s', recv_ts) AS INTEGER) BETWEEN $__from / 1000 AND $__to / 1000 ORDER BY time",
+          "queryType": "time series",
+          "timeColumns": [
+            "time"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "normal": {
+                  "text": "normal",
+                  "color": "green",
+                  "index": 0
+                },
+                "overtemp": {
+                  "text": "overtemp",
+                  "color": "red",
+                  "index": 1
+                },
+                "overcurrent": {
+                  "text": "overcurrent",
+                  "color": "orange",
+                  "index": 2
+                },
+                "warming_up": {
+                  "text": "warming up",
+                  "color": "gray",
+                  "index": 3
+                },
+                "unavailable": {
+                  "text": "unavailable",
+                  "color": "gray",
+                  "index": 4
+                },
+                "ALARM": {
+                  "text": "ALARM",
+                  "color": "red",
+                  "index": 5
+                },
+                "ok": {
+                  "text": "ok",
+                  "color": "green",
+                  "index": 6
+                },
+                "auto": {
+                  "text": "auto",
+                  "color": "green",
+                  "index": 7
+                },
+                "idle": {
+                  "text": "idle",
+                  "color": "gray",
+                  "index": 8
+                },
+                "manual": {
+                  "text": "manual",
+                  "color": "blue",
+                  "index": 9
+                },
+                "fault_stop": {
+                  "text": "fault_stop",
+                  "color": "red",
+                  "index": 10
+                }
+              }
+            }
+          ],
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 80
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "mergeValues": true,
+        "showValue": "auto",
+        "alignValue": "center",
+        "rowHeight": 0.8,
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Joint angles",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "arm-sqlite"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "arm-sqlite"
+          },
+          "refId": "A",
+          "queryText": "SELECT CAST(strftime('%s', recv_ts) AS INTEGER) AS time, j1 AS J1, j2 AS J2, j3 AS J3, j4 AS J4, j5 AS J5, j6 AS J6 FROM readings WHERE asset_id='arm_01' AND CAST(strftime('%s', recv_ts) AS INTEGER) BETWEEN $__from / 1000 AND $__to / 1000 ORDER BY time",
+          "rawQueryText": "SELECT CAST(strftime('%s', recv_ts) AS INTEGER) AS time, j1 AS J1, j2 AS J2, j3 AS J3, j4 AS J4, j5 AS J5, j6 AS J6 FROM readings WHERE asset_id='arm_01' AND CAST(strftime('%s', recv_ts) AS INTEGER) BETWEEN $__from / 1000 AND $__to / 1000 ORDER BY time",
+          "queryType": "time series",
+          "timeColumns": [
+            "time"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "degree",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "Aggregates over the selected time range",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "arm-sqlite"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 17,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "arm-sqlite"
+          },
+          "refId": "A",
+          "queryText": "SELECT ROUND(AVG(temp),1) AS \"Mean temp (C)\", MAX(temp) AS \"Max temp (C)\", ROUND(AVG(current),2) AS \"Mean current (A)\", MAX(current) AS \"Max current (A)\", SUM(baseline_alarm) AS \"Threshold alarm samples\", SUM(ai_label IN ('overtemp','overcurrent')) AS \"AI fault samples\", COUNT(*) AS \"Samples\" FROM readings WHERE asset_id='arm_01' AND CAST(strftime('%s', recv_ts) AS INTEGER) BETWEEN $__from / 1000 AND $__to / 1000",
+          "rawQueryText": "SELECT ROUND(AVG(temp),1) AS \"Mean temp (C)\", MAX(temp) AS \"Max temp (C)\", ROUND(AVG(current),2) AS \"Mean current (A)\", MAX(current) AS \"Max current (A)\", SUM(baseline_alarm) AS \"Threshold alarm samples\", SUM(ai_label IN ('overtemp','overcurrent')) AS \"AI fault samples\", COUNT(*) AS \"Samples\" FROM readings WHERE asset_id='arm_01' AND CAST(strftime('%s', recv_ts) AS INTEGER) BETWEEN $__from / 1000 AND $__to / 1000",
+          "queryType": "table",
+          "timeColumns": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 12,
+      "type": "table",
+      "title": "Event log: AI or alarm changes (selected time range)",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "arm-sqlite"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 14,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "arm-sqlite"
+          },
+          "refId": "A",
+          "queryText": "SELECT recv_ts AS \"Time (UTC)\", ai_label AS \"AI\", CASE WHEN baseline_alarm=1 THEN 'ALARM' ELSE 'ok' END AS \"Threshold alarm\", temp AS \"Temp (C)\", current AS \"Current (A)\" FROM (SELECT id, recv_ts, ai_label, baseline_alarm, temp, current, LAG(ai_label) OVER (ORDER BY id) AS prev_ai, LAG(baseline_alarm) OVER (ORDER BY id) AS prev_al FROM readings WHERE asset_id='arm_01' AND CAST(strftime('%s', recv_ts) AS INTEGER) BETWEEN $__from / 1000 AND $__to / 1000) WHERE prev_ai IS NOT NULL AND (ai_label <> prev_ai OR baseline_alarm <> prev_al) ORDER BY id DESC LIMIT 20",
+          "rawQueryText": "SELECT recv_ts AS \"Time (UTC)\", ai_label AS \"AI\", CASE WHEN baseline_alarm=1 THEN 'ALARM' ELSE 'ok' END AS \"Threshold alarm\", temp AS \"Temp (C)\", current AS \"Current (A)\" FROM (SELECT id, recv_ts, ai_label, baseline_alarm, temp, current, LAG(ai_label) OVER (ORDER BY id) AS prev_ai, LAG(baseline_alarm) OVER (ORDER BY id) AS prev_al FROM readings WHERE asset_id='arm_01' AND CAST(strftime('%s', recv_ts) AS INTEGER) BETWEEN $__from / 1000 AND $__to / 1000) WHERE prev_ai IS NOT NULL AND (ai_label <> prev_ai OR baseline_alarm <> prev_al) ORDER BY id DESC LIMIT 20",
+          "queryType": "table",
+          "timeColumns": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "normal": {
+                  "text": "normal",
+                  "color": "green",
+                  "index": 0
+                },
+                "overtemp": {
+                  "text": "overtemp",
+                  "color": "red",
+                  "index": 1
+                },
+                "overcurrent": {
+                  "text": "overcurrent",
+                  "color": "orange",
+                  "index": 2
+                },
+                "warming_up": {
+                  "text": "warming up",
+                  "color": "gray",
+                  "index": 3
+                },
+                "unavailable": {
+                  "text": "unavailable",
+                  "color": "gray",
+                  "index": 4
+                },
+                "ALARM": {
+                  "text": "ALARM",
+                  "color": "red",
+                  "index": 5
+                },
+                "ok": {
+                  "text": "ok",
+                  "color": "green",
+                  "index": 6
+                },
+                "auto": {
+                  "text": "auto",
+                  "color": "green",
+                  "index": 7
+                },
+                "idle": {
+                  "text": "idle",
+                  "color": "gray",
+                  "index": 8
+                },
+                "manual": {
+                  "text": "manual",
+                  "color": "blue",
+                  "index": 9
+                },
+                "fault_stop": {
+                  "text": "fault_stop",
+                  "color": "red",
+                  "index": 10
+                }
+              }
+            }
+          ],
+          "custom": {
+            "cellOptions": {
+              "type": "color-text"
+            }
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      }
+    },
+    {
+      "id": 13,
+      "type": "table",
+      "title": "Rejected messages (invalid input)",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "arm-sqlite"
+      },
+      "gridPos": {
+        "x": 14,
+        "y": 25,
+        "w": 10,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "arm-sqlite"
+          },
+          "refId": "A",
+          "queryText": "SELECT recv_ts AS \"Time (UTC)\", reason AS \"Reason\" FROM rejects ORDER BY id DESC LIMIT 15",
+          "rawQueryText": "SELECT recv_ts AS \"Time (UTC)\", reason AS \"Reason\" FROM rejects ORDER BY id DESC LIMIT 15",
+          "queryType": "table",
+          "timeColumns": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "custom": {
+            "cellOptions": {
+              "type": "color-text"
+            }
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      }
+    }
+  ]
+}
