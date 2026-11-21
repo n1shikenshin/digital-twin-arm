@@ -12,6 +12,8 @@ services:
     environment:
       MQTT_HOST: mosquitto
       DB_PATH: /data/arm.db
+    ports:
+      - "8080:8080"
     volumes:
       - dbdata:/data
     depends_on:
@@ -26,5 +28,27 @@ services:
       - mosquitto
     restart: unless-stopped
 
+  grafana:
+    image: grafana/grafana:latest
+    # runs as root so it can read the shared SQLite volume (lab setup only)
+    user: "0"
+    ports:
+      - "3001:3000"   # 3001 on the host: Omniverse's Python debugger already uses localhost:3000
+    environment:
+      GF_INSTALL_PLUGINS: frser-sqlite-datasource
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/etc/grafana/dashboards
+      - dbdata:/data
+    depends_on:
+      - processor
+    restart: unless-stopped
+
 volumes:
   dbdata:
+  grafana-data:

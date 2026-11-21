@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Robot Arm Digital Twin Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+ body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#111827;color:#e5e7eb}
+ header{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:#1f2937}
+ h1{font-size:18px;margin:0} h2{font-size:14px;margin:0 0 6px;color:#9ca3af;font-weight:600}
+ .badge{padding:4px 12px;border-radius:12px;font-weight:600;font-size:13px;margin-left:8px}
+ .live{background:#166534}.stale{background:#b45309}
+ main{padding:16px 20px;max-width:1100px;margin:auto}
+ .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+ .card{background:#1f2937;border-radius:8px;padding:10px 12px}
+ .card small{color:#9ca3af;display:block}.card b{font-size:22px}
+ .panel{background:#1f2937;border-radius:8px;padding:10px 12px;margin-top:12px}
+ canvas{width:100%;height:170px;display:block} canvas.strip{height:26px}
+ table{width:100%;border-collapse:collapse;font-size:13px}
+ td,th{padding:4px 6px;border-bottom:1px solid #374151;text-align:left}
+ .row{display:flex;gap:12px;flex-wrap:wrap}.row>div{flex:1;min-width:320px}
+ select{background:#111827;color:#e5e7eb;border:1px solid #374151;padding:3px;border-radius:4px}
+ .legend span{margin-right:12px;font-size:12px}
+</style></head>
+<body>
+<header>
+ <h1>Robot Arm Digital Twin: arm_01</h1>
+ <div><small id="upd"></small>
+  <select id="range">
+   <option value="60">last 1 min</option><option value="180" selected>last 3 min</option>
+   <option value="600">last 10 min</option><option value="1800">last 30 min</option>
+   <option value="3600">last 60 min</option></select>
+  <span id="badge" class="badge stale">connecting</span></div>
+</header>
+<main>
+ <div class="cards">
+  <div class="card"><small>Motor temperature</small><b id="t">-</b></div>
+  <div class="card"><small>Motor current</small><b id="c">-</b></div>
+  <div class="card"><small>AI status</small><b id="ai">-</b></div>
+  <div class="card"><small>Mode</small><b id="mode">-</b></div>
+  <div class="card"><small>Threshold alarm</small><b id="al">-</b></div>
+  <div class="card"><small>Max temp (range)</small><b id="mx">-</b></div>
+  <div class="card"><small>Alarm samples (range)</small><b id="na">-</b></div>
+ </div>
+ <div class="panel"><h2>Motor temperature (deg C)</h2><canvas id="ct"></canvas></div>
+ <div class="panel"><h2>Motor current (A)</h2><canvas id="cc"></canvas></div>
+ <div class="panel"><h2>AI status timeline</h2><canvas id="cai" class="strip"></canvas>
+  <div class="legend"><span style="color:#22c55e">&#9632; normal</span><span style="color:#ef4444">&#9632; overtemp</span>
+  <span style="color:#f59e0b">&#9632; overcurrent</span><span style="color:#6b7280">&#9632; warming up / other</span></div></div>
+ <div class="row">
+  <div class="panel"><h2>Event log (AI or alarm changes)</h2>
+   <table><thead><tr><th>Time (UTC)</th><th>AI</th><th>Alarm</th><th>Temp</th><th>Current</th></tr></thead><tbody id="ev"></tbody></table></div>
+  <div class="panel"><h2>Rejected messages (invalid input)</h2>
+   <table><thead><tr><th>Time (UTC)</th><th>Reason</th></tr></thead><tbody id="rj"></tbody></table></div>
+ </div>
+</main>
+<script>
+const COL={normal:'#22c55e',overtemp:'#ef4444',overcurrent:'#f59e0b'};
+const $=id=>document.getElementById(id);
+const colorFor=l=>COL[l]||'#6b7280';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function setBadge(cls,text){const b=$('badge');b.className='badge '+cls;b.textContent=text;}
+
+function line(cv,vals,color,thr){
+  const dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;
+  cv.width=w*dpr;cv.height=h*dpr;
+  const g=cv.getContext('2d');g.scale(dpr,dpr);g.clearRect(0,0,w,h);
+  if(vals.length<2)return;
+  const all=thr==null?vals:vals.concat([thr]);
+  let lo=Math.min(...all),hi=Math.max(...all);
+  const pad=(hi-lo||1)*0.08;lo-=pad;hi+=pad;
+  const L=44,R=8,T=8,B=8,pw=w-L-R,ph=h-T-B;
+  const X=i=>L+i/(vals.length-1)*pw,Y=v=>T+ph-(v-lo)/(hi-lo)*ph;
+  g.strokeStyle='#374151';g.fillStyle='#9ca3af';g.font='11px sans-serif';g.lineWidth=1;
+  for(let k=0;k<=3;k++){const v=lo+(hi-lo)*k/3,y=Y(v);g.beginPath();g.moveTo(L,y);g.lineTo(w-R,y);g.stroke();g.fillText(v.toFixed(1),2,y+4);}
+  if(thr!=null){g.strokeStyle='#ef4444';g.setLineDash([5,4]);g.beginPath();g.moveTo(L,Y(thr));g.lineTo(w-R,Y(thr));g.stroke();g.setLineDash([]);g.fillStyle='#ef4444';g.fillText('alarm level '+thr,L+4,Y(thr)-4);}
+  g.strokeStyle=color;g.lineWidth=2;g.beginPath();
+  vals.forEach((v,i)=>{i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v));});g.stroke();
+}
+function strip(cv,labels){
+  const dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;
+  cv.width=w*dpr;cv.height=h*dpr;
+  const g=cv.getContext('2d');g.scale(dpr,dpr);g.clearRect(0,0,w,h);
+  const n=labels.length;if(!n)return;
+  const L=44,pw=w-L-8,bw=pw/n;
+  labels.forEach((l,i)=>{g.fillStyle=colorFor(l);g.fillRect(L+i*bw,0,Math.ceil(bw)+0.5,h);});
+}
+async function refresh(){
+  try{
+    const n=$('range').value;
+    const [hr,rr]=await Promise.all([fetch('/history?limit='+n),fetch('/rejects')]);
+    const d=await hr.json(),rej=await rr.json();
+    if(!d.length){setBadge('stale','NO DATA YET');return;}
+    const last=d[d.length-1];
+    const age=(Date.now()-Date.parse(last.ts))/1000;
+    if(age<=5)setBadge('live','LIVE');else setBadge('stale','NO LIVE DATA ('+Math.round(age)+' s old)');
+    $('t').textContent=last.temp.toFixed(1)+' C';
+    $('c').textContent=last.current.toFixed(2)+' A';
+    $('ai').textContent=last.ai;$('ai').style.color=colorFor(last.ai);
+    $('mode').textContent=last.mode;
+    $('al').textContent=last.alarm?'ALARM':'ok';$('al').style.color=last.alarm?'#ef4444':'#22c55e';
+    $('mx').textContent=Math.max(...d.map(r=>r.temp)).toFixed(1)+' C';
+    $('na').textContent=d.filter(r=>r.alarm).length;
+    $('upd').textContent='last sample '+last.ts.substring(11,19)+' UTC';
+    line($('ct'),d.map(r=>r.temp),'#38bdf8',85);
+    line($('cc'),d.map(r=>r.current),'#a78bfa',5);
+    strip($('cai'),d.map(r=>r.ai));
+    const ev=[];let pa=null,pl=null;
+    d.forEach(r=>{if(pa!==null&&(r.ai!==pa||r.alarm!==pl))ev.push(r);pa=r.ai;pl=r.alarm;});
+    $('ev').innerHTML=ev.slice(-12).reverse().map(r=>'<tr><td>'+r.ts.substring(11,19)+'</td><td style="color:'+colorFor(r.ai)+'">'+esc(r.ai)+'</td><td>'+(r.alarm?'ALARM':'ok')+'</td><td>'+r.temp.toFixed(1)+' C</td><td>'+r.current.toFixed(2)+' A</td></tr>').join('')||'<tr><td colspan="5">no changes in this range</td></tr>';
+    $('rj').innerHTML=rej.map(r=>'<tr><td>'+r.ts.substring(11,19)+'</td><td>'+esc(r.reason)+'</td></tr>').join('')||'<tr><td colspan="2">none</td></tr>';
+  }catch(e){setBadge('stale','API unreachable');}
+}
+$('range').addEventListener('change',refresh);
+setInterval(refresh,2000);refresh();
+</script></body></html>

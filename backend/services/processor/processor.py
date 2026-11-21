@@ -1,15 +1,25 @@
-"""Processor: validate -> store in SQLite -> aggregate -> publish enriched state."""
+"""Processor: validate -> store in SQLite -> aggregate -> AI -> publish enriched state.
+Also serves a history API and a web dashboard on port 8080."""
 import json
 import os
 import sqlite3
+import threading
 import time
+from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
+import joblib
 import paho.mqtt.client as mqtt
+
+from features import WINDOW, make_features
 
 HOST = os.getenv("MQTT_HOST", "localhost")
 PORT = int(os.getenv("MQTT_PORT", "1883"))
 DB_PATH = os.getenv("DB_PATH", "arm.db")
+DASH = Path(__file__).with_name("dashboard.html")
 
 JOINT_LIMITS = [170, 120, 135, 180, 120, 180]
 MODES = {"idle", "auto", "manual", "fault_stop"}
@@ -92,9 +102,99 @@ def aggregates(db, asset, now):
     }
 
 
+# ---------------- AI model ----------------
+MODEL_PATH = os.getenv("MODEL_PATH", "model.joblib")
+try:
+    MODEL = joblib.load(MODEL_PATH)
+    print("model loaded:", MODEL_PATH, flush=True)
+except Exception as e:
+    MODEL = None
+    print("WARNING: model not loaded:", e, flush=True)
+
+history = defaultdict(lambda: deque(maxlen=WINDOW))
+last_seq = {}
+
+
+def classify(hist):
+    if MODEL is None:
+        return {"label": "unavailable", "confidence": None, "model": "none"}
+    x = make_features(list(hist))
+    if x is None:
+        return {"label": "warming_up", "confidence": None, "model": "random_forest_v1"}
+    proba = MODEL.predict_proba([x])[0]
+    k = int(proba.argmax())
+    return {"label": str(MODEL.classes_[k]), "confidence": round(float(proba[k]), 3),
+            "model": "random_forest_v1"}
+
+
+# ---------------- History API and dashboard ----------------
+def fetch_history(asset, n):
+    con = sqlite3.connect(DB_PATH, timeout=5)
+    try:
+        rows = con.execute(
+            "SELECT recv_ts, j1,j2,j3,j4,j5,j6, gripper, mode, temp, current, ai_label, baseline_alarm "
+            "FROM readings WHERE asset_id=? ORDER BY id DESC LIMIT ?", (asset, n)).fetchall()
+    finally:
+        con.close()
+    rows.reverse()
+    return [{"ts": r[0], "joints": list(r[1:7]), "gripper": r[7], "mode": r[8], "temp": r[9],
+             "current": r[10], "ai": r[11], "alarm": r[12]} for r in rows]
+
+
+def fetch_rejects(n=15):
+    con = sqlite3.connect(DB_PATH, timeout=5)
+    try:
+        rows = con.execute("SELECT recv_ts, reason FROM rejects ORDER BY id DESC LIMIT ?", (n,)).fetchall()
+    finally:
+        con.close()
+    return [{"ts": r[0], "reason": r[1]} for r in rows]
+
+
+class Api(BaseHTTPRequestHandler):
+    def _send(self, code, obj):
+        body = json.dumps(obj).encode()
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_GET(self):
+        url = urlparse(self.path)
+        q = parse_qs(url.query)
+        if url.path in ("/", "/dashboard"):
+            try:
+                body = DASH.read_bytes()
+            except OSError:
+                self._send(404, {"error": "dashboard.html missing"})
+                return
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        elif url.path == "/health":
+            self._send(200, {"status": "ok"})
+        elif url.path == "/history":
+            try:
+                n = max(1, min(int(q.get("limit", ["180"])[0]), 3600))
+            except ValueError:
+                n = 180
+            self._send(200, fetch_history(q.get("asset", ["arm_01"])[0], n))
+        elif url.path == "/rejects":
+            self._send(200, fetch_rejects())
+        else:
+            self._send(404, {"error": "not found"})
+
+    def log_message(self, *args):
+        pass
+
+
+# ---------------- Main loop ----------------
 def main():
     os.makedirs(os.path.dirname(DB_PATH) or ".", exist_ok=True)
     db = sqlite3.connect(DB_PATH)
+    db.execute("PRAGMA journal_mode=WAL")
     db.executescript(SCHEMA)
     db.commit()
 
@@ -120,7 +220,13 @@ def main():
             print("REJECTED:", reason, flush=True)
             return
 
-        ai = {"label": "n/a", "confidence": None, "model": "none"}   # AI is added in a later step
+        hist = history[m["asset_id"]]
+        if m["seq"] != last_seq.get(m["asset_id"], m["seq"] - 1) + 1:
+            hist.clear()        # gap or simulator restart: start a fresh window
+        last_seq[m["asset_id"]] = m["seq"]
+        hist.append({"temp": m["motor_temp_c"], "current": m["motor_current_a"],
+                     "joints": m["joint_deg"], "mode": m["mode"]})
+        ai = classify(hist)
         alarm = baseline_alarm(m)
         j = m["joint_deg"]
         db.execute(
@@ -147,6 +253,9 @@ def main():
         except OSError:
             print("broker not ready, retrying...", flush=True)
             time.sleep(2)
+    threading.Thread(target=lambda: ThreadingHTTPServer(("0.0.0.0", 8080), Api).serve_forever(),
+                     daemon=True).start()
+    print("history API on :8080", flush=True)
     client.loop_forever()
 
 
